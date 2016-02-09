@@ -15,16 +15,15 @@ function createWebSocket(path) {
     return new Socket(uri);
 }
 
-var socket = createWebSocket('/');
+const socket = createWebSocket('/');
 
-var makeWSDriver = function (prefix) {
-  return function (prefix) {
+var makeWSDriver = function () {
+  return function () {
     return Rx.Observable.create(observer => {
-      const connection = socket;
-      connection.onerror = (err) => {
+      socket.onerror = (err) => {
         observer.onError(err)
       }
-      connection.onmessage = (msg) => {
+      socket.onmessage = (msg) => {
         observer.onNext(msg)
       }
     }).share();
@@ -62,7 +61,9 @@ function main(sources) {
 
   const numClick$ = sources.DOM
     .select('.num').events('click');
-  
+     
+  console.log('numClick$ ', numClick$);  
+
   const numClickAction$ = numClick$.map(e => {
     mM3
     .bnd(push,e.target.textContent)
@@ -272,7 +273,7 @@ function updateGroup(e) {
 const drivers = {
   DOM: makeDOMDriver('#main-container'),
   HTTP: makeHTTPDriver(),
-  WS: makeWSDriver('CA#$42')
+  WS: makeWSDriver()
 }
 
 

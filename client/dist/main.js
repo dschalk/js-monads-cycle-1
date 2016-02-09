@@ -18119,14 +18119,13 @@ function createWebSocket(path) {
 
 var socket = createWebSocket('/');
 
-var makeWSDriver = function makeWSDriver(prefix) {
-  return function (prefix) {
+var makeWSDriver = function makeWSDriver() {
+  return function () {
     return _rx2['default'].Observable.create(function (observer) {
-      var connection = socket;
-      connection.onerror = function (err) {
+      socket.onerror = function (err) {
         observer.onError(err);
       };
-      connection.onmessage = function (msg) {
+      socket.onmessage = function (msg) {
         observer.onNext(msg);
       };
     }).share();
@@ -18162,6 +18161,8 @@ function main(sources) {
   });
 
   var numClick$ = sources.DOM.select('.num').events('click');
+
+  console.log('numClick$ ', numClick$);
 
   var numClickAction$ = numClick$.map(function (e) {
     mM3.bnd(push, e.target.textContent).bnd(function () {
@@ -18337,7 +18338,7 @@ function updateGroup(e) {
 var drivers = {
   DOM: (0, _cycleDom.makeDOMDriver)('#main-container'),
   HTTP: (0, _cycleHttp.makeHTTPDriver)(),
-  WS: makeWSDriver('CA#$42')
+  WS: makeWSDriver()
 };
 
 _cycleCore2['default'].run(main, drivers);
