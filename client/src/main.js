@@ -5,7 +5,8 @@ import Rx from 'rx';
 
 var Group = 'solo';
 var Name;
-
+var tempStyle = {display: 'inline'}
+mM6.ret('');
 function createWebSocket(path) {
     let host = window.location.hostname;
     if(host == '') host = 'localhost';
@@ -25,10 +26,6 @@ var makeWSDriver = function (prefix) {
       }
       connection.onmessage = (msg) => {
         observer.onNext(msg)
-        if (prefix === 'CA#$42') {
-          let gm = event.data.split(",");
-          mM1.ret([gm[3], gm[4], gm[5], gm[6]]);
-        }
       }
     }).share();
   }
@@ -40,101 +37,17 @@ mM3.ret([]);
 
 function main(sources) {
 
-  socket.onmessage = function messages(event) { 
-  console.log('event ', event);  
-  let gameArray = event.data.split(",");
-  let makeStr = x => {
-    let l = x.length;
-    let str = '';
-      for (let i=5; i<l; i+=1) {
-          str = str + ', ' + x[i];
-      }
-    return (x[4] + ' ' + str);
-  }
-  let d2 = event.data.substring(0,6);
-  // let d3 = event.data.substring(2,6);
-  let sender = gameArray[2];
-  let extra = gameArray[3];
-  let ext4 = gameArray[4];
-  let ext5 = gameArray[5];
-  let ext6 = gameArray[6];
-
-      switch (d2) {
-          case "CC#$42":                         // Not broadcast. Login message.
-            if (extra === '%#8*&&^1#$%^')  {
-              mM6.ret('Name taken');
-              //that.setState({info: `You entered a name which is already taken`})
-              setTimeout( function () {
-                document.location.reload(false);
-              },2000);
-            }
-            else {
-              mM6.ret(sender + '\'s socket is now open');
-            }
-      
-          break;
-
-          case "CZ#$42":                  // Solutions.
-          break;
-          /*
-          case "CA#$42":                    // Triggedarkred by ROLL
-              mM1.ret([extra,  ext4,  ext5,  ext6])
-              .bnd(() => mM17.ret(['add', 'subtract', 'mult', 'div', 'concat']) 
-              .bnd(() => mM3.ret([])
-              .bnd(() => mM8.ret(0)
-              .bnd(() => mM6
-              .bnd(displayInline,'0')
-              .bnd(displayInline,'1')
-              .bnd(displayInline,'2')
-              .bnd(displayInline,'3')))));
-          break;
-*/
-          case "CB#$42":                             // Updates the scoreboaard.
-            let scores = extra.split("<br>");
-            mMscbd.ret(scores)
-            .bnd(updateScoreboard)
-            .bnd(() => mM3.ret([])
-            .bnd(() => mM8.ret(0)
-            .bnd(() => mM6)));
-          break;
-
-          case "CD#$42":  // Updates the message display.
-            gameArray.splice(0,3);
-            let message = gameArray.reduce((a,b) => a + ", " + b)
-  let d2 = event.data.substring(0,6);
-            let str = sender + ': ' + message;
-            mMmsg
-            .bnd(push,str)
-            .bnd(updateMessages)
-          break;
-          
-          default:
-            console.log('Message fell through to default');
-          break;
-      }
-   };
-
- /* 
-  const messages$ = socket$.args[0].onmessage.handleEvent(message => {
-    let gm = message.data.split(",");
-    let d2 = message.data.substring(0,6);
-    if (d2 === 'CA#$42') {
-      mM1.ret([gm[0], gm[1], gm[2], gm[3]])
-    }
-  });
-
-*/
   const messages$ = (sources.WS).map(e => {
-    let pre = e.data.substring(0,6);
+    let prefix = e.data.substring(0,6);
     let ar = event.data.split(",");
     console.log(e);
-    if (pre === 'CA#$42') {
+    if (prefix === 'CA#$42') {
       mM1.ret([ar[3], ar[4], ar[5], ar[6]])
       .bnd(displayInline,'1')
       .bnd(displayInline,'2')
       .bnd(displayInline,'3');
     }
-    if (pre === 'CB#$42') {
+    if (prefix === 'CB#$42') {
       let scores = ar[3].split("<br>");
       mMscbd.ret(scores)
       .bnd(updateScoreboard)
@@ -142,8 +55,8 @@ function main(sources) {
       .bnd(() => mM8.ret(0)
       .bnd(() => mM6)));
     }
-    if (pre === 'CC#$42') {
-      mM6.ret( ar[2] + '\'s socket$ is now open');
+    if (prefix === 'CC#$42') {
+      mM6.ret( ar[2] + '\'s socket is now open');
     }
   });
 
@@ -165,14 +78,18 @@ function main(sources) {
     if (mM3.x.length === 2) {updateCalc();}
   })
 
-  
-
   const calcStream$ = Rx.Observable.merge(messages$, numClickAction$, opClickAction$);
 
   return {
     DOM: 
       calcStream$.map(x => 
       h('div', [ 
+      h('br'),
+      h('br'),
+      h('br'),
+      h('br'),
+      h('br'),
+      h('br'),
       h('button#0.num', mM1.x[0]+'' ),
       h('button#1.num', mM1.x[1]+'' ),
       h('button#2.num', mM1.x[2]+'' ),
@@ -186,8 +103,11 @@ function main(sources) {
       h('br'),
       h('button', {onclick: updateRoll}, 'ROLL' ),
       h('br'),
-      h('p', 'In order to create a unique socket, please enter some name.'  ),
-      h('input', { onkeydown: updateLogin }   ),
+      h('br'),
+      h('br'),
+      h('p', {style: tempStyle}, 'In order to create a unique socket, please enter some name.'  ),
+      h('br'),
+      h('input', {style: tempStyle, onkeydown: updateLogin }   ),
       h('p.login', mM6.x.toString() ),
       h('div.score', mMscoreboard.x )
       ])
@@ -302,6 +222,7 @@ function updateLogin(e) {
        Name = v;
        mM3.ret([]).bnd(mM2.ret);
        e.target.value = '';
+       tempStyle = {display: 'none'}
      }
 }
 

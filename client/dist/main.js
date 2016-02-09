@@ -18107,7 +18107,8 @@ var _rx2 = _interopRequireDefault(_rx);
 
 var Group = 'solo';
 var Name;
-
+var tempStyle = { display: 'inline' };
+mM6.ret('');
 function createWebSocket(path) {
   var host = window.location.hostname;
   if (host == '') host = 'localhost';
@@ -18127,10 +18128,6 @@ var makeWSDriver = function makeWSDriver(prefix) {
       };
       connection.onmessage = function (msg) {
         observer.onNext(msg);
-        if (prefix === 'CA#$42') {
-          var gm = event.data.split(",");
-          mM1.ret([gm[3], gm[4], gm[5], gm[6]]);
-        }
       };
     }).share();
   };
@@ -18142,102 +18139,14 @@ mM3.ret([]);
 
 function main(sources) {
 
-  socket.onmessage = function messages(event) {
-    console.log('event ', event);
-    var gameArray = event.data.split(",");
-    var makeStr = function makeStr(x) {
-      var l = x.length;
-      var str = '';
-      for (var i = 5; i < l; i += 1) {
-        str = str + ', ' + x[i];
-      }
-      return x[4] + ' ' + str;
-    };
-    var d2 = event.data.substring(0, 6);
-    // let d3 = event.data.substring(2,6);
-    var sender = gameArray[2];
-    var extra = gameArray[3];
-    var ext4 = gameArray[4];
-    var ext5 = gameArray[5];
-    var ext6 = gameArray[6];
-
-    switch (d2) {
-      case "CC#$42":
-        // Not broadcast. Login message.
-        if (extra === '%#8*&&^1#$%^') {
-          mM6.ret('Name taken');
-          //that.setState({info: `You entered a name which is already taken`})
-          setTimeout(function () {
-            document.location.reload(false);
-          }, 2000);
-        } else {
-          mM6.ret(sender + '\'s socket is now open');
-        }
-
-        break;
-
-      case "CZ#$42":
-        // Solutions.
-        break;
-      /*
-      case "CA#$42":                    // Triggedarkred by ROLL
-          mM1.ret([extra,  ext4,  ext5,  ext6])
-          .bnd(() => mM17.ret(['add', 'subtract', 'mult', 'div', 'concat']) 
-          .bnd(() => mM3.ret([])
-          .bnd(() => mM8.ret(0)
-          .bnd(() => mM6
-          .bnd(displayInline,'0')
-          .bnd(displayInline,'1')
-          .bnd(displayInline,'2')
-          .bnd(displayInline,'3')))));
-      break;
-      */
-      case "CB#$42":
-        // Updates the scoreboaard.
-        var scores = extra.split("<br>");
-        mMscbd.ret(scores).bnd(updateScoreboard).bnd(function () {
-          return mM3.ret([]).bnd(function () {
-            return mM8.ret(0).bnd(function () {
-              return mM6;
-            });
-          });
-        });
-        break;
-
-      case "CD#$42":
-        // Updates the message display.
-        gameArray.splice(0, 3);
-        var message = gameArray.reduce(function (a, b) {
-          return a + ", " + b;
-        });
-        var d2 = event.data.substring(0, 6);
-        var str = sender + ': ' + message;
-        mMmsg.bnd(push, str).bnd(updateMessages);
-        break;
-
-      default:
-        console.log('Message fell through to default');
-        break;
-    }
-  };
-
-  /* 
-   const messages$ = socket$.args[0].onmessage.handleEvent(message => {
-     let gm = message.data.split(",");
-     let d2 = message.data.substring(0,6);
-     if (d2 === 'CA#$42') {
-       mM1.ret([gm[0], gm[1], gm[2], gm[3]])
-     }
-   });
-  */
   var messages$ = sources.WS.map(function (e) {
-    var pre = e.data.substring(0, 6);
+    var prefix = e.data.substring(0, 6);
     var ar = event.data.split(",");
     console.log(e);
-    if (pre === 'CA#$42') {
+    if (prefix === 'CA#$42') {
       mM1.ret([ar[3], ar[4], ar[5], ar[6]]).bnd(displayInline, '1').bnd(displayInline, '2').bnd(displayInline, '3');
     }
-    if (pre === 'CB#$42') {
+    if (prefix === 'CB#$42') {
       var scores = ar[3].split("<br>");
       mMscbd.ret(scores).bnd(updateScoreboard).bnd(function () {
         return mM3.ret([]).bnd(function () {
@@ -18247,8 +18156,8 @@ function main(sources) {
         });
       });
     }
-    if (pre === 'CC#$42') {
-      mM6.ret(ar[2] + '\'s socket$ is now open');
+    if (prefix === 'CC#$42') {
+      mM6.ret(ar[2] + '\'s socket is now open');
     }
   });
 
@@ -18276,7 +18185,7 @@ function main(sources) {
 
   return {
     DOM: calcStream$.map(function (x) {
-      return (0, _cycleDom.h)('div', [(0, _cycleDom.h)('button#0.num', mM1.x[0] + ''), (0, _cycleDom.h)('button#1.num', mM1.x[1] + ''), (0, _cycleDom.h)('button#2.num', mM1.x[2] + ''), (0, _cycleDom.h)('button#3.num', mM1.x[3] + ''), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('button#4.op', 'add'), (0, _cycleDom.h)('button#5.op', 'subtract'), (0, _cycleDom.h)('button#5.op', 'mult'), (0, _cycleDom.h)('button#5.op', 'div'), (0, _cycleDom.h)('button#5.op', 'concat'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('button', { onclick: updateRoll }, 'ROLL'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('p', 'In order to create a unique socket, please enter some name.'), (0, _cycleDom.h)('input', { onkeydown: updateLogin }), (0, _cycleDom.h)('p.login', mM6.x.toString()), (0, _cycleDom.h)('div.score', mMscoreboard.x)]);
+      return (0, _cycleDom.h)('div', [(0, _cycleDom.h)('br'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('button#0.num', mM1.x[0] + ''), (0, _cycleDom.h)('button#1.num', mM1.x[1] + ''), (0, _cycleDom.h)('button#2.num', mM1.x[2] + ''), (0, _cycleDom.h)('button#3.num', mM1.x[3] + ''), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('button#4.op', 'add'), (0, _cycleDom.h)('button#5.op', 'subtract'), (0, _cycleDom.h)('button#5.op', 'mult'), (0, _cycleDom.h)('button#5.op', 'div'), (0, _cycleDom.h)('button#5.op', 'concat'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('button', { onclick: updateRoll }, 'ROLL'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('p', { style: tempStyle }, 'In order to create a unique socket, please enter some name.'), (0, _cycleDom.h)('br'), (0, _cycleDom.h)('input', { style: tempStyle, onkeydown: updateLogin }), (0, _cycleDom.h)('p.login', mM6.x.toString()), (0, _cycleDom.h)('div.score', mMscoreboard.x)]);
     })
   };
 }
@@ -18380,6 +18289,7 @@ function updateLogin(e) {
     Name = v;
     mM3.ret([]).bnd(mM2.ret);
     e.target.value = '';
+    tempStyle = { display: 'none' };
   }
 }
 
