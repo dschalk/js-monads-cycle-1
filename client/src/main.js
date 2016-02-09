@@ -1,5 +1,6 @@
 import Cycle from '@cycle/core';
 import {h, p, span, h1, h2, h3, br, div, label, input, hr, makeDOMDriver} from '@cycle/dom';
+import {makeHTTPDriver} from '@cycle/http';
 import Rx from 'rx';
 
 var Group = 'solo';
@@ -15,11 +16,137 @@ function createWebSocket(path) {
 
 var socket = createWebSocket('/');
 
+var makeWSDriver = function (prefix) {
+  return function (prefix) {
+    return Rx.Observable.create(observer => {
+      const connection = socket;
+      connection.onerror = (err) => {
+        observer.onError(err)
+      }
+      connection.onmessage = (msg) => {
+        observer.onNext(msg)
+        if (prefix === 'CA#$42') {
+          let gm = event.data.split(",");
+          mM1.ret([gm[3], gm[4], gm[5], gm[6]]);
+        }
+      }
+    }).share();
+  }
+}
+
 var words = 'Cow';
 mM1.ret([2,4,6,8]);
 mM3.ret([]);
 
 function main(sources) {
+
+  socket.onmessage = function messages(event) { 
+  console.log('event ', event);  
+  let gameArray = event.data.split(",");
+  let makeStr = x => {
+    let l = x.length;
+    let str = '';
+      for (let i=5; i<l; i+=1) {
+          str = str + ', ' + x[i];
+      }
+    return (x[4] + ' ' + str);
+  }
+  let d2 = event.data.substring(0,6);
+  // let d3 = event.data.substring(2,6);
+  let sender = gameArray[2];
+  let extra = gameArray[3];
+  let ext4 = gameArray[4];
+  let ext5 = gameArray[5];
+  let ext6 = gameArray[6];
+
+      switch (d2) {
+          case "CC#$42":                         // Not broadcast. Login message.
+            if (extra === '%#8*&&^1#$%^')  {
+              mM6.ret('Name taken');
+              //that.setState({info: `You entered a name which is already taken`})
+              setTimeout( function () {
+                document.location.reload(false);
+              },2000);
+            }
+            else {
+              mM6.ret(sender + '\'s socket is now open');
+            }
+      
+          break;
+
+          case "CZ#$42":                  // Solutions.
+          break;
+          /*
+          case "CA#$42":                    // Triggedarkred by ROLL
+              mM1.ret([extra,  ext4,  ext5,  ext6])
+              .bnd(() => mM17.ret(['add', 'subtract', 'mult', 'div', 'concat']) 
+              .bnd(() => mM3.ret([])
+              .bnd(() => mM8.ret(0)
+              .bnd(() => mM6
+              .bnd(displayInline,'0')
+              .bnd(displayInline,'1')
+              .bnd(displayInline,'2')
+              .bnd(displayInline,'3')))));
+          break;
+*/
+          case "CB#$42":                             // Updates the scoreboaard.
+            let scores = extra.split("<br>");
+            mMscbd.ret(scores)
+            .bnd(updateScoreboard)
+            .bnd(() => mM3.ret([])
+            .bnd(() => mM8.ret(0)
+            .bnd(() => mM6)));
+          break;
+
+          case "CD#$42":  // Updates the message display.
+            gameArray.splice(0,3);
+            let message = gameArray.reduce((a,b) => a + ", " + b)
+  let d2 = event.data.substring(0,6);
+            let str = sender + ': ' + message;
+            mMmsg
+            .bnd(push,str)
+            .bnd(updateMessages)
+          break;
+          
+          default:
+            console.log('Message fell through to default');
+          break;
+      }
+   };
+
+ /* 
+  const messages$ = socket$.args[0].onmessage.handleEvent(message => {
+    let gm = message.data.split(",");
+    let d2 = message.data.substring(0,6);
+    if (d2 === 'CA#$42') {
+      mM1.ret([gm[0], gm[1], gm[2], gm[3]])
+    }
+  });
+
+*/
+  const messages$ = (sources.WS).map(e => {
+    let pre = e.data.substring(0,6);
+    let ar = event.data.split(",");
+    console.log(e);
+    if (pre === 'CA#$42') {
+      mM1.ret([ar[3], ar[4], ar[5], ar[6]])
+      .bnd(displayInline,'1')
+      .bnd(displayInline,'2')
+      .bnd(displayInline,'3');
+    }
+    if (pre === 'CB#$42') {
+      let scores = ar[3].split("<br>");
+      mMscbd.ret(scores)
+      .bnd(updateScoreboard)
+      .bnd(() => mM3.ret([])
+      .bnd(() => mM8.ret(0)
+      .bnd(() => mM6)));
+    }
+    if (pre === 'CC#$42') {
+      mM6.ret( ar[2] + '\'s socket$ is now open');
+    }
+  });
+
   const numClick$ = sources.DOM
     .select('.num').events('click');
   
@@ -27,38 +154,44 @@ function main(sources) {
     mM3
     .bnd(push,e.target.textContent)
     .bnd(() => {mM1.x[e.target.id] = "";})
-    if (mM3.x.length === 2 && mM8.x !== 0) {words = 'Good to go'; updateCalc();}
-  }).startWith(mM1.x);
+    if (mM3.x.length === 2 && mM8.x !== 0) {updateCalc();}
+  }).startWith(mM1.x[0]);
 
   const opClick$ = sources.DOM
     .select('.op').events('click');
 
   const opClickAction$ = opClick$.map(e => {
     mM8.ret(e.target.textContent);
-    if (mM3.x.length === 2 && mM8.x !== 0) {words = 'Good to go'; updateCalc();}
-  })  
+    if (mM3.x.length === 2) {updateCalc();}
+  })
 
-  const calcStream$ = Rx.Observable.merge(numClickAction$,opClickAction$);
+  
+
+  const calcStream$ = Rx.Observable.merge(messages$, numClickAction$, opClickAction$);
 
   return {
     DOM: 
       calcStream$.map(x => 
-      h('div', [
+      h('div', [ 
       h('button#0.num', mM1.x[0]+'' ),
       h('button#1.num', mM1.x[1]+'' ),
       h('button#2.num', mM1.x[2]+'' ),
       h('button#3.num', mM1.x[3]+'' ),
-      h('br'),
       h('br'),
       h('button#4.op', 'add'  ),
       h('button#5.op', 'subtract' ),
       h('button#5.op', 'mult' ),
       h('button#5.op', 'div' ),
       h('button#5.op', 'concat' ),
+      h('br'),
+      h('button', {onclick: updateRoll}, 'ROLL' ),
+      h('br'),
       h('p', 'In order to create a unique socket, please enter some name.'  ),
       h('input', { onkeydown: updateLogin }   ),
-      h('p', words )
-      ]))
+      h('p.login', mM6.x.toString() ),
+      h('div.score', mMscoreboard.x )
+      ])
+    )  
   } 
 }  
 
@@ -69,7 +202,7 @@ function updateCalc() {
                     .bnd(next2, ((mM13.x % 5) === 0), mMZ5) 
                     .bnd(newRoll)) ),
       ( mMZ4.bnd(() => mM13
-                    .bnd(score,1)
+                    .bnd(score,3)
                     .bnd(next2, ((mM13.x % 5) === 0), mMZ5) 
                     .bnd(newRoll)) ),
           ( mMZ5.bnd(() => mM13
@@ -97,12 +230,10 @@ var updateScoreboard = function updateScoreboard(v) {
   let ar = mMscbd.x;
   let keys = Object.keys(ar);
   for (let k in keys) {
-    mMscoreboard.bnd(unshift, ar[k])
-    .bnd(unshift, h('br'));
+    mMscoreboard.bnd(unshift, h('p', ar[k]))
   }
-    mMscoreboard.bnd(unshift, h('br'))
-    .bnd(unshift, h('br'))
-    .bnd(unshift,'player [score] [goals]')
+    mMscoreboard
+    .bnd(unshift, h('p', 'player [score] [goals]'))
   return mMscoreboard;
 }
 
@@ -181,9 +312,8 @@ function updateGoback() {
 }
 
 function  updateRoll() {
-  styleRoll2 = {display: 'none'};    
-  mM13.bnd(score,-1)
-  .bnd(update);
+  mM13.ret(mM13.x - 1);
+  socket.send('CG#$42,' + Group + ',' + Name + ',' + -1 + ',' + 0);
   socket.send(`CA#$42,${Group},${Name},6,6,12,20`);
 }
 
@@ -218,81 +348,13 @@ function updateGroup(e) {
   oldVnode = patch(oldVnode, newVnode());
 }
 
-Cycle.run(main, {
-  DOM: makeDOMDriver('#main-container')
-});
+const drivers = {
+  DOM: makeDOMDriver('#main-container'),
+  HTTP: makeHTTPDriver(),
+  WS: makeWSDriver('CA#$42')
+}
 
 
-socket.onmessage = function(event) {
-  console.log(event);
-  let gameArray = event.data.split(",");
-  let makeStr = x => {
-    let l = x.length;
-    let str = '';
-      for (let i=5; i<l; i+=1) {
-        str = str + ', ' + x[i];
-      }
-    return (x[4] + ' ' + str);
-  }
-  let d2 = event.data.substring(0,6);
-  // let d3 = event.data.substring(2,6);
-  let sender = gameArray[2];
-  let extra = gameArray[3];
-  let ext4 = gameArray[4];
-  let ext5 = gameArray[5];
-  let ext6 = gameArray[6];
+Cycle.run(main, drivers);
 
-      switch (d2) {
-          case "CC#$42":                         // Not broadcast. Login message.
-            if (extra === '%#8*&&^1#$%^')  {
-              mM6.ret('Name taken');
-              //that.setState({info: `You entered a name which is already taken`})
-              setTimeout( function () {
-                document.location.reload(false);
-              },2000);
-            }
-            else {
-              mM6.ret(sender + '\'s socket is now open');
-            }
-      
-          break;
-
-          case "CZ#$42":                  // Solutions.
-          break;
-          
-          case "CA#$42":                    // Triggedarkred by ROLL
-              mM1.ret([extra,  ext4,  ext5,  ext6])
-              .bnd(() => mM17.ret(['add', 'subtract', 'mult', 'div', 'concat']) 
-              .bnd(() => mM3.ret([])
-              .bnd(() => mM8.ret(0)
-              .bnd(() => mM6
-              .bnd(displayInline,'0')
-              .bnd(displayInline,'1')
-              .bnd(displayInline,'2')
-              .bnd(displayInline,'3')))));
-          break;
-
-          case "CB#$42":                             // Updates the scoreboaard.
-            let scores = extra.split("<br>");
-            mMscbd.ret(scores)
-            .bnd(updateScoreboard)
-            .bnd(() => mM3.ret([])
-            .bnd(() => mM8.ret(0)
-            .bnd(() => mM6)));
-          break;
-
-          case "CD#$42":  // Updates the message display.
-            gameArray.splice(0,3);
-            let message = gameArray.reduce((a,b) => a + ", " + b)
-            let str = sender + ': ' + message;
-            mMmsg
-            .bnd(push,str)
-            .bnd(updateMessages)
-          break;
-          
-          default:
-            console.log('Message fell through to default');
-          break;
-      }
-   }
 
