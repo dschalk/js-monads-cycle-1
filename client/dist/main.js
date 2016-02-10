@@ -7263,8 +7263,6 @@ var _motorcycleDom = require('@motorcycle/dom');
 
 var _most = require('most');
 
-var _most2 = _interopRequireDefault(_most);
-
 var Group = 'solo';
 var Name;
 var tempStyle = { display: 'inline' };
@@ -7283,12 +7281,9 @@ var socket = createWebSocket('/');
 
 var makeWSDriver = function makeWSDriver() {
   return function () {
-    return _most2['default'].create(function (observer) {
-      socket.onerror = function (err) {
-        observer.onError(err);
-      };
+    return (0, _most.create)(function (add) {
       socket.onmessage = function (msg) {
-        observer.onNext(msg);
+        add(msg);
       };
     });
   };
@@ -7302,7 +7297,7 @@ function main(sources) {
   var messages$ = sources.WS.map(function (e) {
     var prefix = e.data.substring(0, 6);
     var ar = e.data.split(",");
-    console.log(e);
+    console.log('e', e);
     if (prefix === 'CA#$42') {
       mM1.ret([ar[3], ar[4], ar[5], ar[6]]).bnd(displayInline, '1').bnd(displayInline, '2').bnd(displayInline, '3');
     }
@@ -7330,6 +7325,46 @@ function main(sources) {
     }
   });
 
+  var loginPress$ = sources.DOM.select('input.login').events('keydown');
+
+  var loginPressAction$ = loginPress$.map(function (e) {
+    console.log('updateLogin ', e);
+    var v = e.target.value;
+    if (v == '') {
+      return;
+    }
+    if (e.keyCode == 13) {
+      console.log('e.target.value ', e.target.value);
+      socket.send("CC#$42" + v);
+      Name = v;
+      mM3.ret([]).bnd(mM2.ret);
+      e.target.value = '';
+      tempStyle = { display: 'none' };
+      tempStyle2 = { display: 'inline' };
+    }
+  });
+
+  var groupPress$ = sources.DOM.select('input.group').events('keydown');
+
+  var groupPressAction$ = groupPress$.map(function (e) {
+    console.log('In groupPressAction');
+    var v = e.target.value;
+    if (v == '') {
+      return;
+    }
+    if (e.keyCode == 13) Group = e.target.value;
+    socket.send('CO#$42,' + e.target.value + ',' + Name + ',' + e.target.value);
+  });
+
+  var messagePress$ = sources.DOM.select('input.inputMessage').events('keydown');
+
+  var messagePressAction$ = messagePress$.map(function (e) {
+    if (e.keyCode == 13) {
+      socket.send('CD#$42,' + Group + ',' + Name + ',' + e.target.value);
+      e.target.value = '';
+    }
+  });
+
   var numClick$ = sources.DOM.select('.num').events('click');
 
   console.log('numClick$ ', numClick$);
@@ -7352,11 +7387,19 @@ function main(sources) {
     }
   });
 
-  var calcStream$ = _most2['default'].merge(messages$, numClickAction$, opClickAction$);
+  var rollClick$ = sources.DOM.select('.roll').events('click');
+
+  var rollClickAction$ = rollClick$.map(function (e) {
+    mM13.ret(mM13.x - 1);
+    socket.send('CG#$42,' + Group + ',' + Name + ',' + -1 + ',' + 0);
+    socket.send('CA#$42,' + Group + ',' + Name + ',6,6,12,20');
+  });
+
+  var calcStream$ = (0, _most.merge)(groupPressAction$, rollClickAction$, messagePressAction$, loginPressAction$, messages$, numClickAction$, opClickAction$);
 
   return {
     DOM: calcStream$.map(function (x) {
-      return (0, _motorcycleDom.h)('div', [(0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#0.num', mM1.x[0] + ''), (0, _motorcycleDom.h)('button#1.num', mM1.x[1] + ''), (0, _motorcycleDom.h)('button#2.num', mM1.x[2] + ''), (0, _motorcycleDom.h)('button#3.num', mM1.x[3] + ''), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#4.op', 'add'), (0, _motorcycleDom.h)('button#5.op', 'subtract'), (0, _motorcycleDom.h)('button#5.op', 'mult'), (0, _motorcycleDom.h)('button#5.op', 'div'), (0, _motorcycleDom.h)('button#5.op', 'concat'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button', { onclick: updateRoll }, 'ROLL'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('p', { style: tempStyle }, 'In order to create a unique socket, please enter some name.'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('input', { style: tempStyle, onkeydown: updateLogin }), (0, _motorcycleDom.h)('p', mM6.x.toString()), (0, _motorcycleDom.h)('div.score', mMscoreboard.x), (0, _motorcycleDom.h)('p.fred', { style: tempStyle2 }, 'Enter messages here: '), (0, _motorcycleDom.h)('input.inputMessage', { style: tempStyle2, onkeypress: updateMessage }), (0, _motorcycleDom.h)('div.messages', mMmessages.x)]);
+      return (0, _motorcycleDom.h)('div', [(0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#0.num', mM1.x[0] + ''), (0, _motorcycleDom.h)('button#1.num', mM1.x[1] + ''), (0, _motorcycleDom.h)('button#2.num', mM1.x[2] + ''), (0, _motorcycleDom.h)('button#3.num', mM1.x[3] + ''), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#4.op', 'add'), (0, _motorcycleDom.h)('button#5.op', 'subtract'), (0, _motorcycleDom.h)('button#5.op', 'mult'), (0, _motorcycleDom.h)('button#5.op', 'div'), (0, _motorcycleDom.h)('button#5.op', 'concat'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button.roll', 'ROLL'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('p.login', { style: tempStyle }, 'In order to create a unique socket, please enter some name.'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('input.login', { style: tempStyle }), (0, _motorcycleDom.h)('p', mM6.x.toString()), (0, _motorcycleDom.h)('p.group2', 'Group: ' + Group), (0, _motorcycleDom.h)('p.fred', { style: tempStyle2 }, 'Enter messages here: '), (0, _motorcycleDom.h)('input.inputMessage', { style: tempStyle2 }), (0, _motorcycleDom.h)('div.score', mMscoreboard.x), (0, _motorcycleDom.h)('p.group', { style: tempStyle2 }, 'Change group: '), (0, _motorcycleDom.h)('input.group', { style: tempStyle2 }), (0, _motorcycleDom.h)('div.messages', mMmessages.x)]);
     })
   };
 }
@@ -7451,6 +7494,7 @@ var newRoll = function newRoll(v) {
 };
 
 function updateLogin(e) {
+  console.log('updateLogin ', e);
   var v = e.target.value;
   if (v == '') {
     return;

@@ -1,6 +1,6 @@
 import Cycle from '@motorcycle/core';
 import {h, p, span, h1, h2, h3, br, div, label, input, hr, makeDOMDriver} from '@motorcycle/dom';
-import most from 'most';
+import {just, create, merge} from 'most';
 
 var Group = 'solo';
 var Name;
@@ -20,12 +20,9 @@ const socket = createWebSocket('/');
 
 var makeWSDriver = function () {
   return function () {
-    return most.create(observer => {
-      socket.onerror = (err) => {
-        observer.onError(err)
-      }
+    return create(add => {
       socket.onmessage = (msg) => {
-        observer.onNext(msg)
+        add(msg)
       }
     })
   }
@@ -39,7 +36,7 @@ function main(sources) {
   const messages$ = (sources.WS).map(e => {
     let prefix = e.data.substring(0,6);
     let ar = e.data.split(",");
-    console.log(e);
+    console.log('e', e);
     if (prefix === 'CA#$42') {
       mM1.ret([ar[3], ar[4], ar[5], ar[6]])
       .bnd(displayInline,'1')
@@ -68,6 +65,50 @@ function main(sources) {
     }
   });
 
+  const loginPress$ = sources.DOM
+    .select('input.login').events('keydown');
+
+  const loginPressAction$ = loginPress$.map(e => {
+    console.log('updateLogin ', e);
+    let v = e.target.value;
+    if (v == '' ) {
+      return;
+    } 
+    if( e.keyCode == 13 ) {
+      console.log('e.target.value ', e.target.value);
+      socket.send("CC#$42" + v);
+      Name = v;
+      mM3.ret([]).bnd(mM2.ret);
+      e.target.value = '';
+      tempStyle = {display: 'none'}
+      tempStyle2 = {display: 'inline'}
+    }
+  });
+
+  const groupPress$ = sources.DOM
+    .select('input.group').events('keydown');
+
+  const groupPressAction$ = groupPress$.map(e => {
+    console.log('In groupPressAction');
+    let v = e.target.value;
+    if (v == '' ) {
+      return;
+    } 
+    if( e.keyCode == 13 ) 
+      Group = e.target.value;
+      socket.send(`CO#$42,${e.target.value},${Name},${e.target.value}`);
+  });
+
+  const messagePress$ = sources.DOM
+    .select('input.inputMessage').events('keydown');
+
+  const messagePressAction$ = messagePress$.map(e => {
+    if( e.keyCode == 13 ) {
+      socket.send(`CD#$42,${Group},${Name},${e.target.value}`);
+      e.target.value = '';
+    }
+  });
+
   const numClick$ = sources.DOM
     .select('.num').events('click');
      
@@ -88,7 +129,16 @@ function main(sources) {
     if (mM3.x.length === 2) {updateCalc();}
   })
 
-  const calcStream$ = most.merge(messages$, numClickAction$, opClickAction$);
+  const rollClick$ = sources.DOM
+    .select('.roll').events('click');
+
+  const rollClickAction$ = rollClick$.map(e => {  
+    mM13.ret(mM13.x - 1);
+    socket.send('CG#$42,' + Group + ',' + Name + ',' + -1 + ',' + 0);
+    socket.send(`CA#$42,${Group},${Name},6,6,12,20`);
+  });
+
+  const calcStream$ = merge(groupPressAction$, rollClickAction$, messagePressAction$, loginPressAction$, messages$, numClickAction$, opClickAction$);
 
   return {
     DOM: 
@@ -111,17 +161,20 @@ function main(sources) {
       h('button#5.op', 'div' ),
       h('button#5.op', 'concat' ),
       h('br'),
-      h('button', {onclick: updateRoll}, 'ROLL' ),
+      h('button.roll', 'ROLL' ),
       h('br'),
       h('br'),
       h('br'),
-      h('p', {style: tempStyle}, 'In order to create a unique socket, please enter some name.'  ),
+      h('p.login', {style: tempStyle}, 'In order to create a unique socket, please enter some name.'  ),
       h('br'),
-      h('input', {style: tempStyle, onkeydown: updateLogin }   ),
+      h('input.login', {style: tempStyle }   ),
       h('p', mM6.x.toString() ),
-      h('div.score', mMscoreboard.x ),
+      h('p.group2', 'Group: ' + Group  ),
       h('p.fred', {style: tempStyle2}, 'Enter messages here: '  ),
-      h('input.inputMessage', {style: tempStyle2, onkeypress: updateMessage}  ),
+      h('input.inputMessage', {style: tempStyle2}  ),
+      h('div.score', mMscoreboard.x ),
+      h('p.group', {style: tempStyle2}, 'Change group: '  ),
+      h('input.group', {style: tempStyle2} ),
       h('div.messages', mMmessages.x  )
       ])
     )  
@@ -131,11 +184,13 @@ function main(sources) {
 function updateCalc() { 
   ret('start').bnd(() => (
       ( mMZ2.bnd(() => mM13
-                    .bnd(score,1)
+                    .bnd(score, 1)
+                    .ret(mM13.x + 1)
                     .bnd(next2, ((mM13.x % 5) === 0), mMZ5) 
                     .bnd(newRoll)) ),
       ( mMZ4.bnd(() => mM13
-                    .bnd(score,3)
+                    .bnd(score, 3)
+                    .ret(mM13.x + 3)
                     .bnd(next2, ((mM13.x % 5) === 0), mMZ5) 
                     .bnd(newRoll)) ),
           ( mMZ5.bnd(() => mM13
@@ -166,7 +221,7 @@ var updateScoreboard = function updateScoreboard(v) {
     mMscoreboard.bnd(unshift, h('p', ar[k]))
   }
     mMscoreboard
-    .bnd(unshift, h('p', 'player [score] [goals]'))
+    .bnd(unshift, h('h3', 'player [score] [goals]'))
   return mMscoreboard;
 }
 
@@ -200,7 +255,8 @@ var send = function() {
 
 var score = function score(v,j) {
   socket.send('CG#$42,' + Group + ',' + Name + ',' + j + ',' + 0);
-  return mM13.ret(v + j);
+  let mon = new Monad(v);
+  return mon;
 }
 
 var score2 = function score2() {
@@ -225,18 +281,19 @@ var newRoll = function(v) {
 };
 
 function updateLogin(e) {
-     let v = e.target.value;
-     if (v == '' ) {
-       return;
-     } 
-     if( e.keyCode == 13 ) {
-       socket.send("CC#$42" + v);
-       Name = v;
-       mM3.ret([]).bnd(mM2.ret);
-       e.target.value = '';
-       tempStyle = {display: 'none'}
-       tempStyle2 = {display: 'inline'}
-     }
+  console.log('updateLogin ', e);
+  let v = e.target.value;
+  if (v == '' ) {
+    return;
+  } 
+  if( e.keyCode == 13 ) {
+    socket.send("CC#$42" + v);
+    Name = v;
+    mM3.ret([]).bnd(mM2.ret);
+    e.target.value = '';
+    tempStyle = {display: 'none'}
+    tempStyle2 = {display: 'inline'}
+  }
 }
 
 function updateGoback() {
