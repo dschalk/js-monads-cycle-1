@@ -1,12 +1,13 @@
 import Cycle from '@cycle/core';
 import {h, p, span, h1, h2, h3, br, div, label, input, hr, makeDOMDriver} from '@cycle/dom';
-import {makeHTTPDriver} from '@cycle/http';
 import Rx from 'rx';
 
 var Group = 'solo';
 var Name;
 var tempStyle = {display: 'inline'}
+var tempStyle2 = {display: 'none'}
 mM6.ret('');
+
 function createWebSocket(path) {
     let host = window.location.hostname;
     if(host == '') host = 'localhost';
@@ -30,7 +31,6 @@ var makeWSDriver = function () {
   }
 }
 
-var words = 'Cow';
 mM1.ret([2,4,6,8]);
 mM3.ret([]);
 
@@ -38,7 +38,7 @@ function main(sources) {
 
   const messages$ = (sources.WS).map(e => {
     let prefix = e.data.substring(0,6);
-    let ar = event.data.split(",");
+    let ar = e.data.split(",");
     console.log(e);
     if (prefix === 'CA#$42') {
       mM1.ret([ar[3], ar[4], ar[5], ar[6]])
@@ -55,7 +55,16 @@ function main(sources) {
       .bnd(() => mM6)));
     }
     if (prefix === 'CC#$42') {
-      mM6.ret( ar[2] + '\'s socket is now open');
+      mM6.ret( ar[2] + '\'s socket has opened');
+    }
+    if (prefix === 'CD#$42') {
+      let name = ar[2];
+      ar.splice(0,3);
+      let message = ar.reduce((a,b) => a + ", " + b)
+      let str = name + ': ' + message;
+      mMmsg
+      .bnd(push,str)
+      .bnd(updateMessages)
     }
   });
 
@@ -109,8 +118,11 @@ function main(sources) {
       h('p', {style: tempStyle}, 'In order to create a unique socket, please enter some name.'  ),
       h('br'),
       h('input', {style: tempStyle, onkeydown: updateLogin }   ),
-      h('p.login', mM6.x.toString() ),
-      h('div.score', mMscoreboard.x )
+      h('p', mM6.x.toString() ),
+      h('div.score', mMscoreboard.x ),
+      h('p.fred', {style: tempStyle2}, 'Enter messages here: '  ),
+      h('input.inputMessage', {style: tempStyle2, onkeypress: updateMessage}  ),
+      h('div.messages', mMmessages.x  )
       ])
     )  
   } 
@@ -167,8 +179,7 @@ var updateMessages = function updateMessages(v) {
   let ar = mMmsg.x;
   let keys = Object.keys(ar);
   for (let k in keys) {
-    mMmessages.bnd(unshift, ar[k])
-    .bnd(unshift, h('br'));
+    mMmessages.bnd(unshift, h('div', ar[k]))
   }
   return mMmessages;
 }
@@ -224,6 +235,7 @@ function updateLogin(e) {
        mM3.ret([]).bnd(mM2.ret);
        e.target.value = '';
        tempStyle = {display: 'none'}
+       tempStyle2 = {display: 'inline'}
      }
 }
 
@@ -248,9 +260,8 @@ function updateGotochat() {
 function updateMessage(e) {
   if( e.keyCode == 13 ) {
     socket.send(`CD#$42,${Group},${Name},${e.target.value}`);
-    monadStyle = inputStyleB;
-    chatStyle = inputStyleA;
     e.target.value = '';
+    console.log('Here is the message ', e.target.value);
   }
 }
 
@@ -270,13 +281,12 @@ function updateGroup(e) {
   oldVnode = patch(oldVnode, newVnode());
 }
 
-const drivers = {
+const sources = {
   DOM: makeDOMDriver('#main-container'),
-  HTTP: makeHTTPDriver(),
   WS: makeWSDriver()
 }
 
 
-Cycle.run(main, drivers);
+Cycle.run(main, sources);
 
 

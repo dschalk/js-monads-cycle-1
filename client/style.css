@@ -11,7 +11,7 @@ button {
   font-size: 30px;
 }
 
-p {
+.p {
   text-indent: 20px;
   }
 
@@ -47,6 +47,27 @@ h3 {
   width: 30%;
   position: fixed;
   top: 40px;
+  right: 15px;
+}
+
+.fred {
+  width: 30%;
+  position: fixed;
+  top: 370px;
+  right: 15px;
+}
+
+.inputMessage {
+  width: 30%;
+  position: fixed;
+  top: 420px;
+  right: 15px;
+}
+
+.messages {
+  width: 30%;
+  position: fixed;
+  top: 480px;
   right: 15px;
 }
 
