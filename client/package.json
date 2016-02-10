@@ -8,6 +8,9 @@
     "@cycle/core": "6.0.0-rc2",
     "@cycle/dom": "8.0.0-rc2",
     "@cycle/http": "^8.0.0",
+    "@motorcycle/core": "^1.1.0",
+    "@motorcycle/dom": "^1.1.0",
+    "most": "^0.18.0",
     "rx": "4.0.6",
     "watchify": "^3.7.0"
   },

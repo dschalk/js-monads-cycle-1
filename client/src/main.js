@@ -1,6 +1,6 @@
-import Cycle from '@cycle/core';
-import {h, p, span, h1, h2, h3, br, div, label, input, hr, makeDOMDriver} from '@cycle/dom';
-import Rx from 'rx';
+import Cycle from '@motorcycle/core';
+import {h, p, span, h1, h2, h3, br, div, label, input, hr, makeDOMDriver} from '@motorcycle/dom';
+import most from 'most';
 
 var Group = 'solo';
 var Name;
@@ -20,14 +20,14 @@ const socket = createWebSocket('/');
 
 var makeWSDriver = function () {
   return function () {
-    return Rx.Observable.create(observer => {
+    return most.create(observer => {
       socket.onerror = (err) => {
         observer.onError(err)
       }
       socket.onmessage = (msg) => {
         observer.onNext(msg)
       }
-    }).share();
+    })
   }
 }
 
@@ -55,7 +55,7 @@ function main(sources) {
       .bnd(() => mM6)));
     }
     if (prefix === 'CC#$42') {
-      mM6.ret( ar[2] + '\'s socket has opened');
+      mM6.ret( ar[2] + ' successfully logged in.');
     }
     if (prefix === 'CD#$42') {
       let name = ar[2];
@@ -88,7 +88,7 @@ function main(sources) {
     if (mM3.x.length === 2) {updateCalc();}
   })
 
-  const calcStream$ = Rx.Observable.merge(messages$, numClickAction$, opClickAction$);
+  const calcStream$ = most.merge(messages$, numClickAction$, opClickAction$);
 
   return {
     DOM: 
