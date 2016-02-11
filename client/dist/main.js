@@ -7264,6 +7264,7 @@ var _motorcycleDom = require('@motorcycle/dom');
 var _most = require('most');
 
 var Group = 'solo';
+var Goals = 0;
 var Name;
 var tempStyle = { display: 'inline' };
 var tempStyle2 = { display: 'none' };
@@ -7399,7 +7400,7 @@ function main(sources) {
 
   return {
     DOM: calcStream$.map(function (x) {
-      return (0, _motorcycleDom.h)('div', [(0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#0.num', mM1.x[0] + ''), (0, _motorcycleDom.h)('button#1.num', mM1.x[1] + ''), (0, _motorcycleDom.h)('button#2.num', mM1.x[2] + ''), (0, _motorcycleDom.h)('button#3.num', mM1.x[3] + ''), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#4.op', 'add'), (0, _motorcycleDom.h)('button#5.op', 'subtract'), (0, _motorcycleDom.h)('button#5.op', 'mult'), (0, _motorcycleDom.h)('button#5.op', 'div'), (0, _motorcycleDom.h)('button#5.op', 'concat'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button.roll', 'ROLL'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('p.login', { style: tempStyle }, 'In order to create a unique socket, please enter some name.'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('input.login', { style: tempStyle }), (0, _motorcycleDom.h)('p', mM6.x.toString()), (0, _motorcycleDom.h)('p.group2', 'Group: ' + Group), (0, _motorcycleDom.h)('p.fred', { style: tempStyle2 }, 'Enter messages here: '), (0, _motorcycleDom.h)('input.inputMessage', { style: tempStyle2 }), (0, _motorcycleDom.h)('div.score', mMscoreboard.x), (0, _motorcycleDom.h)('p.group', { style: tempStyle2 }, 'Change group: '), (0, _motorcycleDom.h)('input.group', { style: tempStyle2 }), (0, _motorcycleDom.h)('div.messages', mMmessages.x)]);
+      return (0, _motorcycleDom.h)('div.content', [(0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('h2', 'JS-monads-part4'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('span', 'The first step in preparing the fourth page in this series was refactoring the code to use '), (0, _motorcycleDom.h)('a', { props: { href: 'https://github.com/motorcyclejs' }, style: { color: '#EECCFF' } }, 'Motorcyclejs'), (0, _motorcycleDom.h)('span', '. Motorcyclejs is Cyclejs, only using '), (0, _motorcycleDom.h)('a', { props: { href: 'https://github.com/paldepind/snabbdom' }, style: { color: '#EECCFF' } }, 'Snabbdom'), (0, _motorcycleDom.h)('span', ' instead of "virtual-dom", and '), (0, _motorcycleDom.h)('a', { props: { href: 'https://github.com/cujojs/most' }, style: { color: '#EECCFF' } }, 'Most'), (0, _motorcycleDom.h)('span', ' instead of "RxJS".'), (0, _motorcycleDom.h)('p', 'If clicking two numbers and an operator (in any order) results in 20 or 18, the score increases by 1 or 3, respectively. If the score becomes 0 mod 5, 5 points are added. A score of 25 results in one goal. That can only be achieved by arriving at a score of 20, which jumps the score to 25. Directly computing 25 results in a score of 30, and no goal. Each time ROLL is clicked, one point is deducted. Three goals wins the game. '), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#0.num', mM1.x[0] + ''), (0, _motorcycleDom.h)('button#1.num', mM1.x[1] + ''), (0, _motorcycleDom.h)('button#2.num', mM1.x[2] + ''), (0, _motorcycleDom.h)('button#3.num', mM1.x[3] + ''), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button#4.op', 'add'), (0, _motorcycleDom.h)('button#5.op', 'subtract'), (0, _motorcycleDom.h)('button#5.op', 'mult'), (0, _motorcycleDom.h)('button#5.op', 'div'), (0, _motorcycleDom.h)('button#5.op', 'concat'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('button.roll', { style: tempStyle2 }, 'ROLL'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('p.login', { style: tempStyle }, 'In order to create a unique socket, please enter some name.'), (0, _motorcycleDom.h)('br'), (0, _motorcycleDom.h)('input.login', { style: tempStyle }), (0, _motorcycleDom.h)('p', mM6.x.toString()), (0, _motorcycleDom.h)('p.fred', { style: tempStyle2 }, 'Enter messages here: '), (0, _motorcycleDom.h)('input.inputMessage', { style: tempStyle2 }), (0, _motorcycleDom.h)('p.group2', [(0, _motorcycleDom.h)('p', 'Group: ' + Group), (0, _motorcycleDom.h)('p', 'Goals: ' + mMgoals.x)]), (0, _motorcycleDom.h)('div.score', mMscoreboard.x), (0, _motorcycleDom.h)('p.group', { style: tempStyle2 }, 'Change group: '), (0, _motorcycleDom.h)('input.group', { style: tempStyle2 }), (0, _motorcycleDom.h)('div.messages', mMmessages.x)]);
     })
   };
 }
@@ -7407,11 +7408,17 @@ function main(sources) {
 function updateCalc() {
   ret('start').bnd(function () {
     return mMZ2.bnd(function () {
-      return mM13.bnd(score, 1).bnd(next2, mM13.x % 5 === 0, mMZ5).bnd(newRoll);
+      return mM13.bnd(score, 1).bnd(function (v) {
+        return mM13.ret(v);
+      }).bnd(next2, mM13.x % 5 === 0, mMZ5).bnd(newRoll);
     }), mMZ4.bnd(function () {
-      return mM13.bnd(score, 3).bnd(next2, mM13.x % 5 === 0, mMZ5).bnd(newRoll);
+      return mM13.bnd(score, 3).bnd(function (v) {
+        return mM13.ret(v);
+      }).bnd(next2, mM13.x % 5 === 0, mMZ5).bnd(newRoll);
     }), mMZ5.bnd(function () {
-      return mM13.bnd(score, 5).bnd(next, 25, mMZ6);
+      return mM13.bnd(score, 5).bnd(function (v) {
+        return mM13.ret(v);
+      }).bnd(next, 25, mMZ6);
     }), mMZ6.bnd(function () {
       return mM9.bnd(score2).bnd(next, 3, mMZ7);
     }), mMZ7.bnd(function () {
@@ -7435,7 +7442,7 @@ var updateScoreboard = function updateScoreboard(v) {
   for (var k in keys) {
     mMscoreboard.bnd(unshift, (0, _motorcycleDom.h)('p', ar[k]));
   }
-  mMscoreboard.bnd(unshift, (0, _motorcycleDom.h)('p', 'player [score] [goals]'));
+  mMscoreboard.bnd(unshift, (0, _motorcycleDom.h)('h3', 'player [score] [goals]'));
   return mMscoreboard;
 };
 
@@ -7469,7 +7476,7 @@ var send = function send() {
 
 var score = function score(v, j) {
   socket.send('CG#$42,' + Group + ',' + Name + ',' + j + ',' + 0);
-  return mM13.ret(v + j);
+  return ret(v + j);
 };
 
 var score2 = function score2() {

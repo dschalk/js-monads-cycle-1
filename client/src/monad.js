@@ -163,14 +163,14 @@ var pop = function pop(x) {
   return ret(v);
 }
 
-var next = function next(x,y,mon2) {
+var next = function next(x, y, mon2) {
   if (x === y) {
     mon2.release();
   }
   return ret(x);
 }
 
-var next2 = function next(x,condition,mon2) {
+var next2 = function next(x, condition, mon2) {
   if (condition) {
     mon2.release();
   }

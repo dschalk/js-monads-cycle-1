@@ -4,9 +4,17 @@ body {
   font-size: 24px;
 }
 
+.content {
+    width: 60%;
+    text-align: left;
+    margin-left: 40px;
+    margin-right: 17%;
+    font-size: 22px;
+} 
+
 button {
   background-color: #000;
-  color: #CCFDDA;
+  color: #FFFCCA;
   border-color: #000;
   font-size: 30px;
 }
@@ -31,7 +39,7 @@ pre  {
 }
 
 h3 {
-  text-align: center;
+  text-align: left;
   color: #97ecc9;
 }
 
@@ -46,8 +54,9 @@ h3 {
 .group2 {
   width: 30%;
   position: fixed;
-  top: 15px;
+  top: 5px;
   right: 15px;
+  font-size: 16px;
 }
 
 .score {

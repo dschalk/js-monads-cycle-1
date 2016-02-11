@@ -3,6 +3,7 @@ import {h, p, span, h1, h2, h3, br, div, label, input, hr, makeDOMDriver} from '
 import {just, create, merge} from 'most';
 
 var Group = 'solo';
+var Goals = 0;
 var Name;
 var tempStyle = {display: 'inline'}
 var tempStyle2 = {display: 'none'}
@@ -143,12 +144,18 @@ function main(sources) {
   return {
     DOM: 
       calcStream$.map(x => 
-      h('div', [ 
+      h('div.content', [ 
       h('br'),
+      h('h2', 'JS-monads-part4' ),
       h('br'),
-      h('br'),
-      h('br'),
-      h('br'),
+      h('span', 'The first step in preparing the fourth page in this series was refactoring the code to use ' ),
+      h('a', {props: {href: 'https://github.com/motorcyclejs' },  style: {color: '#EECCFF'}},'Motorcyclejs' ), 
+      h('span', '. Motorcyclejs is Cyclejs, only using '  ),  
+      h('a', {props: {href: 'https://github.com/paldepind/snabbdom' },  style: {color: '#EECCFF'}},'Snabbdom' ), 
+      h('span',  ' instead of "virtual-dom", and ' ), 
+      h('a', {props: {href: 'https://github.com/cujojs/most' },  style: {color: '#EECCFF'}},'Most' ), 
+      h('span',  ' instead of "RxJS".'  ), 
+      h('p', 'If clicking two numbers and an operator (in any order) results in 20 or 18, the score increases by 1 or 3, respectively. If the score becomes 0 mod 5, 5 points are added. A score of 25 results in one goal. That can only be achieved by arriving at a score of 20, which jumps the score to 25. Directly computing 25 results in a score of 30, and no goal. Each time ROLL is clicked, one point is deducted. Three goals wins the game. '    ),
       h('br'),
       h('button#0.num', mM1.x[0]+'' ),
       h('button#1.num', mM1.x[1]+'' ),
@@ -161,7 +168,7 @@ function main(sources) {
       h('button#5.op', 'div' ),
       h('button#5.op', 'concat' ),
       h('br'),
-      h('button.roll', 'ROLL' ),
+      h('button.roll', {style: tempStyle2}, 'ROLL' ),
       h('br'),
       h('br'),
       h('br'),
@@ -169,9 +176,11 @@ function main(sources) {
       h('br'),
       h('input.login', {style: tempStyle }   ),
       h('p', mM6.x.toString() ),
-      h('p.group2', 'Group: ' + Group  ),
       h('p.fred', {style: tempStyle2}, 'Enter messages here: '  ),
       h('input.inputMessage', {style: tempStyle2}  ),
+      h('p.group2', [ 
+      h('p',  'Group: ' + Group ),
+      h('p',  'Goals: ' + mMgoals.x ) ]),
       h('div.score', mMscoreboard.x ),
       h('p.group', {style: tempStyle2}, 'Change group: '  ),
       h('input.group', {style: tempStyle2} ),
@@ -185,16 +194,17 @@ function updateCalc() {
   ret('start').bnd(() => (
       ( mMZ2.bnd(() => mM13
                     .bnd(score, 1)
-                    .ret(mM13.x + 1)
-                    .bnd(next2, ((mM13.x % 5) === 0), mMZ5) 
+                    .bnd(v => mM13.ret(v))
+                    .bnd(next2, (mM13.x % 5 === 0), mMZ5) 
                     .bnd(newRoll)) ),
       ( mMZ4.bnd(() => mM13
                     .bnd(score, 3)
-                    .ret(mM13.x + 3)
-                    .bnd(next2, ((mM13.x % 5) === 0), mMZ5) 
+                    .bnd(v => mM13.ret(v))
+                    .bnd(next2, (mM13.x % 5 === 0), mMZ5) 
                     .bnd(newRoll)) ),
           ( mMZ5.bnd(() => mM13
                         .bnd(score,5)
+                        .bnd(v => mM13.ret(v))
                         .bnd(next, 25, mMZ6)) ),
               ( mMZ6.bnd(() => mM9.bnd(score2) 
                             .bnd(next,3,mMZ7)) ),
@@ -255,8 +265,7 @@ var send = function() {
 
 var score = function score(v,j) {
   socket.send('CG#$42,' + Group + ',' + Name + ',' + j + ',' + 0);
-  let mon = new Monad(v);
-  return mon;
+  return ret(v + j);
 }
 
 var score2 = function score2() {
